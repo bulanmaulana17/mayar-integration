@@ -9,11 +9,11 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "firebase-admin": "^11.11.1",
+    "firebase-admin": "^13.4.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.1.10"
   },
   "description": "Ini proyek template backend + frontend untuk integrasi pembayaran Mayar (checkout kit + webhook). **PENTING:** Jangan pernah menaruh secret API key di frontend atau mem-paste secret key di chat publik. Jika kamu sudah mem-paste (atau pernah), sebaiknya revoke/regenerate di dashboard Mayar sekarang.",
   "repository": {

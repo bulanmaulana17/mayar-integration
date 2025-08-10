@@ -38,7 +38,6 @@ app.post('/api/create-transaction', async (req, res) => {
       return res.status(500).json({ error: 'MAYAR_SECRET_KEY not set' });
     }
 
-    // Log payload yang akan dikirim
     const payload = { amount, currency, description, metadata, customer };
     console.log('➡️ Payload kirim ke Mayar:', JSON.stringify(payload));
 
@@ -51,7 +50,23 @@ app.post('/api/create-transaction', async (req, res) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await r.json();
+    // Perbaikan: Tambahkan penanganan untuk respons non-JSON
+    let data;
+    try {
+      // Cek apakah respons memiliki Content-Type: application/json
+      const contentType = r.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await r.json();
+      } else {
+        const errorText = await r.text();
+        console.error('⬅️ Response non-JSON dari Mayar:', errorText);
+        return res.status(r.status).json({ error: 'Respons dari Mayar bukan JSON yang valid', details: errorText });
+      }
+    } catch (parseError) {
+      console.error('🔥 Error parsing JSON dari Mayar:', parseError);
+      return res.status(500).json({ error: 'Gagal memproses respons dari Mayar', details: parseError.message });
+    }
+
     console.log('⬅️ Response status:', r.status);
     console.log('⬅️ Response body:', JSON.stringify(data));
 
@@ -59,10 +74,19 @@ app.post('/api/create-transaction', async (req, res) => {
       return res.status(r.status).json({ error: data });
     }
 
+    // Perbaikan: Menggunakan path yang lebih spesifik sesuai dokumentasi Mayar
+    const transactionId = data?.data?.id;
+
+    if (!transactionId) {
+      console.error('❌ Transaction ID tidak ditemukan di respons Mayar');
+      return res.status(500).json({ error: 'Gagal mendapatkan ID transaksi dari Mayar', raw: data });
+    }
+
     res.json({
-      transaction_id: data.id || data.transaction_id || data.data?.id,
+      transaction_id: transactionId,
       raw: data
     });
+
   } catch (err) {
     console.error('🔥 Error di create-transaction:', err);
     res.status(500).json({ error: err.message });
@@ -76,21 +100,24 @@ app.post('/api/webhook', async (req, res) => {
     console.log('📩 Webhook received:', JSON.stringify(body).slice(0, 500));
 
     const eventName = body.event_name || body.type || (body.data && body.data.status) || 'unknown';
+    
+    // Perbaikan: Mengambil data metadata secara lebih konsisten
+    const meta = body.data?.metadata || {};
+    const { userId, planType, isYearly } = meta;
+
     if (
       eventName === 'payment.paid' ||
       eventName === 'transaction.paid' ||
       eventName === 'paid' ||
       (body.data && body.data.status === 'PAID')
     ) {
-      const meta = (body.data && body.data.metadata) || {};
-      const userId = meta.userId || meta.user_id;
       if (admin.apps.length && userId) {
         const db = admin.firestore();
         await db.doc(`users/${userId}`).set(
           {
-            plan: meta.planType || 'pro',
+            plan: planType || 'pro', // Menggunakan planType dari metadata
             planPurchaseDate: admin.firestore.FieldValue.serverTimestamp(),
-            planDuration: meta.isYearly ? 'yearly' : 'monthly',
+            planDuration: isYearly ? 'yearly' : 'monthly', // Menggunakan isYearly dari metadata
           },
           { merge: true }
         );
