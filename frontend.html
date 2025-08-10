@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mayar Checkout Demo</title>
+</head>
+<body>
+  <h1>Upgrade ke Premium</h1>
+  <div>
+    <label>Nama: <input id="name" /></label><br/>
+    <label>Email: <input id="email" /></label><br/>
+    <label>Jumlah (IDR): <input id="amount" value="10000" /></label><br/>
+    <button id="upgradeBtn">Upgrade</button>
+  </div>
+
+  <script>
+    // Ganti URL ini dengan URL backend kamu setelah deploy (contoh: https://your-app.vercel.app)
+    const BACKEND_CREATE_TX = 'https://YOUR_BACKEND_URL/api/create-transaction';
+    // Gunakan publishable key Mayar di frontend (tapi jangan taruh secret key di sini)
+    const MAYAR_PUBLISHABLE_KEY = 'pk_test_xxx_replace_with_yours';
+
+    document.getElementById('upgradeBtn').addEventListener('click', async () => {
+      const name = document.getElementById('name').value || 'User Demo';
+      const email = document.getElementById('email').value || 'demo@example.com';
+      const amount = Number(document.getElementById('amount').value) || 10000;
+
+      const payload = {
+        amount,
+        currency: 'IDR',
+        description: 'Langganan Premium',
+        metadata: { planType: 'premium', userId: 'user-demo-123' },
+        customer: { name, email }
+      };
+
+      try {
+        const r = await fetch(BACKEND_CREATE_TX, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await r.json();
+        if (!r.ok) return alert('Error create transaction: ' + JSON.stringify(data));
+        const transactionId = data.transaction_id;
+        // Panggil Mayar Kit (pastikan kit.js sudah di-load di project asli)
+        if (window.Mayar && window.Mayar.kit) {
+          window.Mayar.kit.createPayment(transactionId, {
+            onSuccess: () => alert('Pembayaran sukses!'),
+            onFailure: (err) => alert('Gagal: ' + JSON.stringify(err))
+          });
+        } else {
+          alert('Mayar.kit tidak ditemukan. Pastikan kit.js dan publishable key sudah terpasang.');
+        }
+      } catch (e) {
+        alert('Request error: ' + e.message);
+      }
+    });
+  </script>
+</body>
+</html>
