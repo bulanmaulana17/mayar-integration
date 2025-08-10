@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY || '';
-const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id/hl/v1';
+const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id/hl/v1/checkout/transaction';
 const PORT = process.env.PORT || 3000;
 
 // Firebase init
