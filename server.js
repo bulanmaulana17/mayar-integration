@@ -1,8 +1,8 @@
 // server.js
-import express from 'express';
-import fetch from 'node-fetch';
-import cors from 'cors';
-import admin from 'firebase-admin';
+const express = require('express');
+const fetch = require('node-fetch');
+const cors = require('cors');
+const admin = require('firebase-admin');
 
 const app = express();
 app.use(cors());
@@ -99,4 +99,4 @@ if (process.argv[1].endsWith('server.js')) {
 }
 
 // Export untuk Vercel
-export default app;
+module.exports = app;
