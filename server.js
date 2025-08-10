@@ -24,8 +24,11 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   }
 }
 
-// Simple health
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+// Route health check
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});
+
 
 // Create transaction endpoint (frontend calls this)
 app.post('/api/create-transaction', async (req, res) => {
