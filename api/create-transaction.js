@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     try {
         const { amount, currency = 'IDR', description = 'Subscription', metadata = {}, customer = {} } = req.body;
         const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY || '';
-        const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id';
+        const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id/hl/v1';
         
         if (!MAYAR_SECRET_KEY) {
             console.error('❌ Error: MAYAR_SECRET_KEY not set');
@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
         const payload = { amount, currency, description, metadata, customer };
         console.log('➡️ Payload kirim ke Mayar:', JSON.stringify(payload));
 
-        const r = await fetch(`${MAYAR_API_BASE}/v1/transactions`, {
+        const r = await fetch(`${MAYAR_API_BASE}/checkout/transaction`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

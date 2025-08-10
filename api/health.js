@@ -1,6 +1,7 @@
 // api/health.js
-import admin from "firebase-admin";
+const admin = require('firebase-admin');
 
+// Periksa apakah aplikasi Firebase sudah diinisialisasi
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -10,13 +11,14 @@ if (!admin.apps.length) {
     });
     console.log("Firebase initialized successfully");
   } catch (error) {
+    // Tangani error parsing JSON atau inisialisasi
     console.error("Firebase init error:", error.message);
   }
 }
 
 export default async function handler(req, res) {
   try {
-    // Test koneksi Firestore dengan listCollections
+    // Test koneksi Firestore
     await admin.firestore().listCollections();
 
     res.status(200).json({
@@ -29,8 +31,7 @@ export default async function handler(req, res) {
     res.status(500).json({
       status: "error",
       firebase: false,
-      message: error.message,
+      message: "The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.",
     });
   }
 }
-// update terakhir: 2025-08-10
