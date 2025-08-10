@@ -8,6 +8,7 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
+    console.log("Firebase initialized successfully");
   } catch (error) {
     console.error("Firebase init error:", error.message);
   }
@@ -15,7 +16,7 @@ if (!admin.apps.length) {
 
 export default async function handler(req, res) {
   try {
-    // Coba ambil daftar koleksi buat test koneksi
+    // Test koneksi Firestore dengan listCollections
     await admin.firestore().listCollections();
 
     res.status(200).json({
@@ -24,6 +25,7 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    console.error("Firestore error:", error.message);
     res.status(500).json({
       status: "error",
       firebase: false,
