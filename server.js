@@ -33,9 +33,15 @@ app.get('/api/health', (req, res) => {
 app.post('/api/create-transaction', async (req, res) => {
   try {
     const { amount, currency = 'IDR', description = 'Subscription', metadata = {}, customer = {} } = req.body;
-    if (!MAYAR_SECRET_KEY) return res.status(500).json({ error: 'MAYAR_SECRET_KEY not set' });
+    if (!MAYAR_SECRET_KEY) {
+      console.error('❌ Error: MAYAR_SECRET_KEY not set');
+      return res.status(500).json({ error: 'MAYAR_SECRET_KEY not set' });
+    }
 
+    // Log payload yang akan dikirim
     const payload = { amount, currency, description, metadata, customer };
+    console.log('➡️ Payload kirim ke Mayar:', JSON.stringify(payload));
+
     const r = await fetch(`${MAYAR_API_BASE}/v1/transactions`, {
       method: 'POST',
       headers: {
@@ -46,13 +52,19 @@ app.post('/api/create-transaction', async (req, res) => {
     });
 
     const data = await r.json();
-    if (!r.ok) return res.status(r.status).json({ error: data });
+    console.log('⬅️ Response status:', r.status);
+    console.log('⬅️ Response body:', JSON.stringify(data));
+
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data });
+    }
 
     res.json({
       transaction_id: data.id || data.transaction_id || data.data?.id,
       raw: data
     });
   } catch (err) {
+    console.error('🔥 Error di create-transaction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -89,6 +101,7 @@ app.post('/api/webhook', async (req, res) => {
     }
     res.status(200).send('ok');
   } catch (e) {
+    console.error('🔥 Error di webhook:', e);
     res.status(500).send('error');
   }
 });
