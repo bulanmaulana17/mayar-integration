@@ -1,8 +1,8 @@
 // server.js
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
-const admin = require('firebase-admin');
+import express from 'express';
+import fetch from 'node-fetch';
+import cors from 'cors';
+import admin from 'firebase-admin';
 
 const app = express();
 app.use(cors());
@@ -64,16 +64,24 @@ app.post('/api/webhook', async (req, res) => {
     console.log('📩 Webhook received:', JSON.stringify(body).slice(0, 500));
 
     const eventName = body.event_name || body.type || (body.data && body.data.status) || 'unknown';
-    if (eventName === 'payment.paid' || eventName === 'transaction.paid' || eventName === 'paid' || (body.data && body.data.status === 'PAID')) {
+    if (
+      eventName === 'payment.paid' ||
+      eventName === 'transaction.paid' ||
+      eventName === 'paid' ||
+      (body.data && body.data.status === 'PAID')
+    ) {
       const meta = (body.data && body.data.metadata) || {};
       const userId = meta.userId || meta.user_id;
       if (admin.apps.length && userId) {
         const db = admin.firestore();
-        await db.doc(`users/${userId}`).set({
-          plan: meta.planType || 'pro',
-          planPurchaseDate: admin.firestore.FieldValue.serverTimestamp(),
-          planDuration: meta.isYearly ? 'yearly' : 'monthly'
-        }, { merge: true });
+        await db.doc(`users/${userId}`).set(
+          {
+            plan: meta.planType || 'pro',
+            planPurchaseDate: admin.firestore.FieldValue.serverTimestamp(),
+            planDuration: meta.isYearly ? 'yearly' : 'monthly',
+          },
+          { merge: true }
+        );
         console.log(`✅ Updated plan for user ${userId}`);
       } else {
         console.log('⚠️ No Firebase or userId not found in metadata');
@@ -86,9 +94,9 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // Local run (Vercel tidak pakai ini)
-if (require.main === module) {
+if (process.argv[1].endsWith('server.js')) {
   app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 }
 
 // Export untuk Vercel
-module.exports = app;
+export default app;
