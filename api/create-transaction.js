@@ -16,11 +16,18 @@ if (!admin.apps.length) {
 }
 
 module.exports = async (req, res) => {
+  // Perbaikan utama: Menggunakan URL yang benar
+  const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id/hl/v1';
+
   try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      console.error('❌ Error: Request body is empty or invalid');
+      return res.status(400).json({ error: 'Request body is empty or invalid' });
+    }
+
     const { amount, currency = 'IDR', description = 'Subscription', metadata = {}, customer = {} } = req.body;
     const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY || '';
-    const MAYAR_API_BASE = process.env.MAYAR_API_BASE || 'https://api.mayar.id/hl/v1/checkout/transaction'; // URL dasar Mayar
-
+    
     if (!MAYAR_SECRET_KEY) {
       console.error('❌ Error: MAYAR_SECRET_KEY not set');
       return res.status(500).json({ error: 'MAYAR_SECRET_KEY not set' });
@@ -29,7 +36,7 @@ module.exports = async (req, res) => {
     const payload = { amount, currency, description, metadata, customer };
     console.log('➡️ Payload kirim ke Mayar:', JSON.stringify(payload));
 
-    const r = await fetch(`${MAYAR_API_BASE}/checkout/transaction`, { // URL endpoint yang BENAR
+    const r = await fetch(`${MAYAR_API_BASE}/checkout/transaction`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
